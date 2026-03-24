@@ -1,0 +1,143 @@
+	Questions
+	 
+		1. Number of users affected by the issue?
+		2. Are the affected user account(s) being used by any specific applications as service accounts or are they just normal end user accounts?
+		3. What are the Password and Account Lockout policy settings? (You can run the command net accounts /domain and obtain the below information)
+		4. After unlocking the account does it occur again for the same user? If yes, after how much time does it reoccur?
+		5. From when the user is facing this issue?
+		6. What type of devices user have to log on to domain? (Laptop / Workstation / Server)
+		7. Where is/are the user(s) account located? What is the impacted domain name?
+		8. Where are the DCs located? Number of DCs, name and IP information. (You may run the following command in powershell to get the output)
+		Get-ADDomainController -Filter * | select Name, OperatingSystem, IPv4Address, Site 
+		9. How frequent does the bad password attempts happen? (Every two minutes / Every few hours / Immediately)
+		10. Is there any identifiable patterns? (Always / Random / Few times a day / Intermittent / Specific time of the day/after accessing certain applications)
+		11. Any event ID recorded during the account lock out. Please share the screenshot of it.
+	 
+	 
+	How to check Lockout
+	 
+	First need to look for the event IDs
+	4771 - Kerberos
+	4776 - NTLM process
+	 
+	4740- System logs that will show account lockout
+	 
+	It will give the source. In the source 
+	In machine system event 40960 can also show lockout
+	 
+	4740, 4625 , 4648 & 4688 - check
+	 
+	Netlogon when authenticates, it is NTLM.
+	 
+	kerberos or NTLM  
+	 
+	 
+	NTLM :
+	 
+	LM compatibility - registry
+	 
+	NTLM v1 or NTLM v2
+	 
+	 
+		12. Please let me know the name of the client hostname and username where we are going to troubleshoot the issue. 
+		13. Enable the below auditing by running the commands in the cmd (admin mode) in both client and DC
+	 
+	Category	Subcategory	Command
+	Logon/Logoff	 	Auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+	 	Logon	Auditpol /set /subcategory:"Logon" /success:enable /failure:enable
+	 	Logoff	Auditpol /set /subcategory:"Logoff" /success:enable /failure:enable
+	 	Account Lockout	Auditpol /set /subcategory:"Account Lockout" /success:enable /failure:enable
+	 	Special Logon	Auditpol /set /subcategory:"Special Logon" /success:enable /failure:enable
+	 	Other Logon/Logoff Events	Auditpol /set /subcategory:"Other Logon/Logoff Events" /success:enable /failure:enable
+	Account Logon	 	Auditpol /set /category:"Account Logon" /success:enable /failure:enable
+	 	Kerberos Service Ticket Operations	Auditpol /set /subcategory:"Kerberos Service Ticket Operations" /success:enable /failure:enable
+	 	Other Account Logon events	Auditpol /set /subcategory:"Other Account Logon events" /success:enable /failure:enable
+	 	Kerberos Authentication Service	Auditpol /set /subcategory:"Kerberos Authentication Service" /success:enable /failure:enable
+	 	Credential Validation	Auditpol /set /subcategory:"Credential Validation" /success:enable /failure:enable
+	 
+	Enable Process Auditing in the source 
+	 
+		1. Share the output of the cmd auditpol.exe /get /category:* from client and DC
+		2. Open cmd in the admin mode. Run the command nltest /dbflag:0x2080fff  in client and DC.
+		3. Run the command net stop netlogon & net start netlogon this will enable the netlogon logging.
+		4. Wait for the issue to happen
+		5. Open cmd in the admin mode. Run the command Nltest /dbflag:0 in client and DC.
+		6. Run command tasklist /v>tasklistv.txt
+		7. Run command gpsvlog
+		8. Note the time when the issue occurs and time zone.
+		9. Copy netlogon.log and netlogon.bak from DC and client they would be located on C:\windows\debug
+		10. Copy the system, application and security logs from both DC and client.
+		11. Run the command Net config rdr in the client machine.
+		12. Run the below commands in DC 
+		 
+		 
+		 
+		 
+		First of all we have to pickup a machine where usually lockout is happening, we will call it PC1.We will need to identify the Authenticated DC in this machine 
+		 
+		Open elevated CMD on PC1 and run nltest /Dsgetdc:contos.com
+		 
+		This will identify the Authenticated DC, we will call it DC1
+		 
+		In PC1 enable the following Advanced Audits, you can do this in Local Gpo, Domain GPO or with Auditbpol.exe command as mentioned bellow:
+		 
+		Category	Subcategory	Command
+		Logon/Logoff	 	Auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+		 	Logon	Auditpol /set /subcategory:"Logon" /success:enable /failure:enable
+		 	Logoff	Auditpol /set /subcategory:"Logoff" /success:enable /failure:enable
+		 	Account Lockout	Auditpol /set /subcategory:"Account Lockout" /success:enable /failure:enable
+		 	Special Logon	Auditpol /set /subcategory:"Special Logon" /success:enable /failure:enable
+		 	Other Logon/Logoff Events	Auditpol /set /subcategory:"Other Logon/Logoff Events" /success:enable /failure:enable
+		Account Logon	 	Auditpol /set /category:"Account Logon" /success:enable /failure:enable
+		 	Kerberos Service Ticket Operations	Auditpol /set /subcategory:"Kerberos Service Ticket Operations" /success:enable /failure:enable
+		 	Other Account Logon events	Auditpol /set /subcategory:"Other Account Logon events" /success:enable /failure:enable
+		 	Kerberos Authentication Service	Auditpol /set /subcategory:"Kerberos Authentication Service" /success:enable /failure:enable
+		 	Credential Validation	Auditpol /set /subcategory:"Credential Validation" /success:enable /failure:enable
+		Detailed Tracking	Audit process creation	Auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable
+			 
+			 
+			After this please share the output of the cmd auditpol.exe /get /category:* from PC1 and DC1
+			 
+			Open cmd in the admin mode. Run the command nltest /dbflag:0x2080fff  in PC1 and DC1
+			nltest /dbflag:0x0
+			 
+			Run the command net stop netlogon & net start netlogon in PC1 and DC1 this will enable the netlogon logging.
+			 
+			Wait for lockout to happen
+			 
+			When you identified that the account got locked out in the machine that you are monitoring it will log event 4740 in you case with the source of the machine.
+			 
+			At this moment collect security events fromDC1 and security, system and application logs from PC1 as well as 
+			Copy netlogon.log and netlogon.bak from DC and client they would be located on C:\windows\debug
+			 
+			Run also in PC1 the following command in elevated CMD  which will contain all PID numbers and names from the PC:
+			 
+			tasklist /v>tasklistv.txt
+			 
+			 
+
+	
+
+
+	
+
+
+	You will need to start the troubleshoot from the DC that is getting the account lockout, first check if it is coming from the PDC DC or from any other DC, you need to open the security logs from the DC and check who is sending bad password, is it from the Member server, client machine or from the DC.
+	
+	Whichever way that is throwing the bad password to the machine and start doing the troubleshooting, go to the security logs and check.
+	
+	We need the data when the issue start.
+	Go to the client machine and run runas /user:child\joe
+	runas /user:child\joe cmd.exe
+
+	You can ask the cx to enter bad password to check which of the DC that is logout the user account
+	
+	
+	How long does this account lockout,
+	What is your threshold.
+	Tell cx to Enable netlogon and audit for the account lockedout
+	Tell cx to configure lockoutstatus
+	
+	4776  which is ntlm which might not show the source so netlogon need to be enable.
+
+
