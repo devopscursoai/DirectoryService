@@ -1,0 +1,146 @@
+To check the server dc the client is connected to use the command:
+
+
+It will also show the gpo that was applied on specific dc if you run gpresult /r it will show from the compuer configuration of which dc is was applied and also from the user config which dc is applied:
+
+
+
+
+
+You use this command to show which DC the client is authenticating:
+
+Nltest /DSGETDC:contoso.com
+
+
+If you want to find how window os find the closes DC the netlogon service is responsible for discovering, it must be running all the time.
+
+Netsh trace - This is usually a good starting point for NTLM authentication cases to first understand the error and even the timestamp to correlate with other logs. Please be sure to know what endpoint we are trying to reach to understand which (if multiple) authentication error is of interest.
+Use the commands below in an Administrator Command prompt to capture the tracing. You should start the tracing, reproduce the issue, then stop the tracing.
+Depending on the product type, use one of the commands below to start a network trace.
+Windows edition	Suggested command
+Windows client	netsh trace start InternetClient persistent=yes traceFile=%temp%%computername%_Netmon.etl capture=yes maxsize=1024
+Windows Server - Member Server only	netsh trace start persistent=yes traceFile=%temp%%computername%_Netmon.etl capture=yes maxsize=1024
+Windows Server - Domain controller	netsh trace start persistent=yes traceFile=%temp%%computername%_Netmon.etl capture=yes maxsize=1024
+
+
+
+
+To enable the Debug netlogon on your client you can run the command:
+Enable logging:
+nltest /dbflag:0x2EFFFFFF
+
+To run the command to disable it  run the command: 
+Disable logging:
+nltest /dbflag:0x0
+
+
+
+This is to use auth script for the authentication issue:
+https://aka.ms/authscripts
+
+
+	Data collection
+	Using a local administrator or domain administrator:
+	1. Preparation prior to log collection on the affected machine:
+a. Download the TSS script from  https://aka.ms/getTSS .
+b. Extract the script to C:\MS\
+	2. Open PowerShell as Administrator:
+a. Navigate to the folder where you saved the TSS on the affected machine:
+
+cd C:\MS\
+
+b. Start data collection by running:
+	.\TSS.ps1 -Scenario ADS_Auth
+	 
+	3. Reproduce the issue on the impacted machine
+	4. Stop data collection:
+After the user login, switch back to the administrator account where you started the data collection and stop it by clicking on Y.
+	5. Upload the collected logs to the workspace
+
+
+• Using the command nltest /sc_query:contoso.com, we can confirm that the secure channel is established with the domain controller DC1.
+
+
+
+
+To check if cx has secure channel issue:
+Test-ComputerSecureChannel -Verbose
+This has to be true.
+
+nltest /sc_verify:<domainFQDN>
+Run as elevated powershell command
+
+Enabling Clients to Locate the Next Closest Domain Controller | Microsoft Learn
+Enable Clients to Locate a Domain Controller in the Next Closest Site | Microsoft Learn
+
+A. DNS configuration (this is critical)
+Clients must use AD‑integrated DNS, not public or static DNS pointing only to Region A.
+Check:
+	• Client DNS servers include DCs from Region A and Region B
+No public DNS (8.8.8.8, 1.1.1.1) listed
+2. How to check SRV records (two supported ways)
+✅ Method 1: From a CLIENT or SERVER (most common & recommended)
+This checks exactly what the client sees, which is what matters.
+A. Check “all DCs in the domain” (cross‑site visibility)
+Run this from the client (or any domain member):
+
+NSLOOKUP DC1.CONTOSO.COM 
+nltest /sc_verify:contoso.com
+Nltest /sc_reset:contoso.com\DC01.contoso.com
+Klist purge
+Ipconfig /flushdns
+BAT
+nslookup
+set type=SRV
+_ldap._tcp.dc._msdcs.contoso.com
+``
+Show more lines
+✅ Expected result:
+	• Multiple SRV records
+	• One entry per DC (Region A + Region B)
+Example of healthy output (conceptual):
+_ldap._tcp.dc._msdcs.contoso.com SRV service location:
+  priority = 0
+  weight = 100
+  port = 389
+  svr hostname = dc1.contoso.com
+  svr hostname = dc2.contoso.com
+  svr hostname = dc3.contoso.com
+
+
+When you would use this
+nltest /sc_reset:<domain>\<domain controller>?
+
+This command is commonly used when you see errors like:
+	• “The trust relationship between this workstation and the primary domain failed”
+	• Authentication issues after: 
+		○ Network changes
+		○ VPN / site-to-site routing problems
+		○ VM snapshots or restores
+		○ DC availability issues
+	• A machine authenticating against the wrong or remote DC
+Nltest | Microsoft Learn
+
+This is to check the dns srv from the client:
+
+
+nltest /dsaddresstosite:10.96.18.9
+
+
+
+
+
+
+Nltest /dclist:contoso.com
+
+
+
+
+nslookup -type=SRV _ldap._tcp.dc._msdcs.contoso.com
+klist get krbtgt/contoso.com
+
+Or to get the full picture:
+
+
+nslookup -type=SRV _ldap._tcp.dc._msdcs.contoso.com > dns_srv_result.txt
+klist get krbtgt/contoso.com >> dns_srv_result.txt
