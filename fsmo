@@ -1,0 +1,57 @@
+Open the command prompt with administrative privileges.
+Type ntdsutil and press Enter.
+Type roles and press Enter.
+Type connections and press Enter.
+Type connect to server <> and press Enter (destination server name where it is needed to be transfer)
+Type quit and press Enter.
+ 
+Next, we will transfer FSMO roles one by one with the corresponding command, as the case may be. After each Enter appears a confirmation window. Just click Yes to continue.
+ 
+For Schema Master, type transfer schema master and press Enter.
+For RID Master, type transfer rid master and press Enter.
+For Domain Naming Master, type transfer naming master and press Enter.
+For PDC Emulator, type transfer pdc and press Enter.
+For Infrastructure Master, type transfer infrastructure master and press Enter.
+ 
+ 
+For seizure : replace transfer with Seize in the above command
+ 
+ 
+	TRANSFER FROM ONE DC TO ANOTHER: 
+	 
+		• Execute netdom query fsmo command on CMD to see which DC is the FSMO role owner. 
+		• 
+	 
+		• FSMO roles transfer operation can be performed in different ways: GUID, or PowerShell (Move-ADDirectoryServerOperationMasterRole or NTDSUtil). 
+		• GUID 
+		• RID, PDC, and Infrastructure Master Roles: 
+		• From the DC that's NOT the FSMO roles owner, go to Active Directory Users and Computers 
+		• Right-click the domain > Select Operations Master > Click Change for each role in the tab 
+		• 
+	 
+		• Domain Naming Master Role: 
+		• Open Active Directory Domains and Trusts. 
+		• Right-click Active Directory Domains and Trusts > Select Operations Masters > Click Change 
+	 
+		• Schema Master Role: 
+		• Register the schmmgmt.dll file using regsvr32 schmmgmt.dll on CMD. 
+		• Execute mmc command on CMD for the Console Root to open. 
+		• Open Active Directory Schema snap-in, right-click Active Directory Schema, select Operations Masters, and click Change. 
+	 
+		• PowerShell 
+		• NTDSUtil 
+		• Enter NTDSUtil command on CMD. 
+		• Log into the server that is NOT the owner of the FSMO roles. In this scenario, DC2. 
+		• Transfer the role using the below command: 
+		• 
+	 
+		• Move-ADDirectoryServerOperationMasterRole 
+		• Go to PowerShell and enter the following cmdlet: Move-ADDirectoryServerOperationMasterRole -Identity <TargetServer> -OperationMasterRole SchemaMaster 
+		• Target server should be the DC that is taking over the role. 
+		• Commands for the FSMO roles as follows: 
+		• PDCEmulator 
+		• RIDMaster 
+		• InfrastructureMaster 
+		• DomainNamingMaster 
+		• SchemaMaster 
+	 
