@@ -1,0 +1,77 @@
+Create the KDSrootkey:
+Add-KdsRootKey -EffectiveTime ((Get-Date).AddHours(-10))
+Create gmsa account:
+New-ADServiceAccount -Name gMsa -Description "gMsa for cluster" 
+-DNSHostName servFAB.fabrikam.com 
+-PrincipalsAllowedToRetrieveManagedPassword cluster 
+-Enabled $True
+
+This the permission might be denied, you need to set the permissionrunning this:
+Set-ADServiceAccount gMsa -PrincipalsAllowedToRetrieveManagedPassword "CN=cluster,CN=Computers,DC=fabrikam,DC=com"
+
+
+
+
+2nd gmsa
+New-ADServiceAccount -Name gMsa2 -Description "gMsa for cluster" -DNSHostName WIN1FAB0.fabrikam.com -PrincipalsAllowedToRetrieveManagedPassword WIN1FAB0$ -Enabled $True
+
+Verify gmsa:
+Get-ADServiceAccount gMsa
+
+Install gmsa on the machine you want to use it for:
+Install-ADServiceAccount -Identity gMsa2
+
+Test-ADServiceAccount gMsa2
+Uninstall-ADServiceAccount gMsa2
+Remove-ADServiceAccount -Identity gMsa2
+
+To revise back:
+sc config LicenseManager obj= LocalSystem
+
+sc.exe query | findstr /i adam
+
+
+
+sc.exe qc ADAM_LdapService
+
+
+
+
+To add the service account to the admin group in the ADSI, 
+$port = 3890   # <-- use your AD LDS LDAP port
+$domain = "CONTOSO"
+$account = "msa_ldap"   # <-- your service account name (no domain)
+
+# Get AD LDS Configuration naming context
+$root = [ADSI]"LDAP://localhost:$port/RootDSE"
+$cfg  = $root.configurationNamingContext
+
+# Bind to AD LDS Administrators role
+$adminsDn = "CN=Administrators,CN=Roles," + $cfg
+$admins   = [ADSI]"LDAP://LDAPServer:$port/$adminsDn"
+
+# Translate DOMAIN\account to SID
+$nt = New-Object System.Security.Principal.NTAccount($domain,$account)
+$sid = $nt.Translate([System.Security.Principal.SecurityIdentifier]).Value
+
+# Add as a Windows principal member of the AD LDS Administrators role
+$admins.Properties["member"].Add("<SID=$sid>")
+$admins.CommitChanges()
+
+The service can't use the ADLDS port of the ADDS you have to give a different port: 3890 ssl:6360
+
+Check for NTLM restrictions windows server 2003 requires NTLM. The august patch might have restricted this:
+Get-itemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "LmCompatibilityLevel"
+
+Check smbv1 status adlds often uses the local workstation/server service to talk to DC via smb
+Get-WindowsFeature FS-SMB1
+ 
+Check the service-specific error code run this to see exactly why the service stopped
+Get-EventLog -LogName System -Source "Service Control Manager" -Newest 10 | Where-Object {$_Meassage -like ADLDS"} | Select-Object -Property EventID, Message | Format-List
+
+This is to check the functional level:
+Get-ADDomain | Select-Object Name DomainMode
+
+Get-ADForest | Select-Object Name ForestMode
+Get-ADDomainController -Filter * | select-object Name, OperatingSsystem, OperatingSystemVersion
+Get-ADRootDSE | Select-Object domainFunctionality, ForestFunctionality
