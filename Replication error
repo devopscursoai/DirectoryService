@@ -1,0 +1,48 @@
+PS C:\Users\MSFT> repadmin /showrepl * /csv | ConvertFrom-Csv | Out-GridView
+
+
+
+Sysvol replication steps on MS:
+
+Force synchronization for Distributed File System Replication (DFSR) replicated sysvol replication - Windows Server | Microsoft Learn
+
+
+Main replication :
+
+Target Principal Name is incorrect when manually replicating data between domain controllers - Windows Server | Microsoft Learn
+
+
+
+wmimgmt.msc …..
+
+YOU USE THIS TO CHECK IF THE RPC is connected to other DC
+
+
+What might make the DC not reachable or unavailable
+Incorrect DNS settings
+Incorrect time and time zone settings
+The TCP/IP Netbios helper service isn't running
+The remote registry service isn't running.
+
+How to fix
+	1. Make sure all the service on the PC is running: Navigate to service.msc then click on DCOM server process launcher, click on it ensure is set to automatic and also check the RPC is also set to automatic and is running as well
+	2. Check RPC isn't blocked by your firewall: click run and type control click enter, then click window defender firewall then click allow an app or feature through windows defender firewall make sure the remote assistance is check if not check then check it and restart your PC 
+	3. Boot using normal startup go to search system configuration and click on it, check the normal startup is selected if it isn't select it and click ok and restart your PC
+	4. Enable IPV6 and file printer sharing: press the window and click on run then type ncpa.cpl then ok, then right click the network then select property check if the file and printer sharing and ipv6 and ipv4 is checked
+	5. Flush your dns cache: search for powershell and run as admin, type ipconfig /flushdns then type ipconfig  /renew 
+	6. Edit your regisrt settings: searc for registry and navigate to hkey-local-machine /system/currentcontrolset/RPCSS double click and set value data to 2 then ok. Go to \system\currentcontrolset\services\DcomLaunch double click on start set value to 2 navigate to  \system\currentcontrolset\services\RpcEptMapper double click on start and set the value to 2
+	
+	
+	Repadmin /showrepl * /csv >c:\temp\one.csv
+	Run dcdiag /fix
+	Run repadmin /showrepl 
+	Run repadmin /replsum
+	Run Repadmin /syncall /ADePq
+	Run repadmin /replsum
+	
+	Repadmin /replicate dc1 dc2 "dc=root,dc=contoso,dc=com"
+	
+	
+	
+	
+	Telnet <ip> 636, 135
