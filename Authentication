@@ -1,0 +1,63 @@
+Authentication is a process for verifying the identity of an object, service or person
+--To know if the person is genuine,
+Act of proving identity to a network application or resource
+
+Different authentication schemes:
+>>Using user name and password
+>>Smart card
+>>PIN code
+>>Fingerprints
+>>Local user and groups
+>>Active directory/entra
+>>fido key
+
+Why we need authen:
+>>provide security to pretoect resource in the network
+>>iy helps control who has access to the protected resource
+>>prevent un-autorized users from accessing the reason
+>>its prevent users gain access to the device
+
+This is used when you are trying to access network in the network,
+It is used for a network share
+For apply group policy
+Logon to a RDS
+Access a website hosted on a webserver
+
+Where authentication is used?
+
+Microsft exchange
+Sharepoint
+Microsoft team
+Skype, SQL, internet information system, 0365, third party authentication
+
+
+Types of authentication.
+
+Kerberos, NTLM, CERTIFICATE, LDAP simple bind
+
+LOGON TYPES
+
+Interactive logon e.g logon to your message
+Network logon -e.g trying to logon on file share
+Batch logon
+Remote interactive logon e.g who can interactive logon and who can RDP logon to the metion
+Unlock log- eg you lockon and logon to your mess
+Cached interactive e.g logon on your machine when there is no connectivity  before connecting to the vpn
+
+Authentication protocol
+Kerberos, ntlm, ldap
+
+4624 is an event ID of kerberos
+Kerberos authentication---this is used to verify identity of a user or a host
+It is very secure and uses symmetric keys to send the user credentials over the wire
+Its provide single sign on where user doesn't have to enter the credential multiple times to access the resource in the network
+It is more efficient where the application server doesn't required to validate the user credential by contacting the DC. Instead the server can authenticate the user by examining credential
+
+3 phases of kerberos
+
+1 AS_REQ-authentication request
+   AS_REP- authentication response (this happened when logon on machine)
+2 TGS_REQ-Ticket granting service request
+    TGS_REP- Ticket granting service response
+3 AP_REQ- application request
+  AP_REP- Application response
