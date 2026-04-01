@@ -1,0 +1,53 @@
+Allow us to redirect specific folder, from user profile to another location
+Allow us to have offline files by default
+This is an user policy, which will be process during logon
+Policy location: user configuration\policies\windows settings\folder redirection
+
+For the folder redirection to work promptly we need to have connectivity to the domain controller in other to work promptly.
+
+AdvANTAGE
+
+The data is always available: if the user received the folder redirection group policy, it will create a link to redirected user profile folders for that specific user into a shared location, i.e any change made on a different machines, will be available and update for the user
+Offline file technology
+Logon and logoff process more efficient.
+
+Let compare this with roaming profiles because with the roaming profiles, since we will need to actually upload and the data, it will take longer than when we use folder redirection
+
+Demo
+
+We have a regular user and we have 3 pcs on a single domain controller, this user has mentioned already has a profile on each of the pcs if we enable group policy folder redirection it will create link from the PC's they login to the file server, if they login to the second pc, will also create a link to the file server
+
+
+The main issue if the pc does not have the connectivity with the DC and the group policy is not applied the folder redirection will not work, the folder redirection will not be available for the user
+
+Configuration:
+
+1, create a folder redirection security group : name folder redirection group and add the users on the same ou to the group.
+	2. Create a file share for redirection folders: you can user file server to create the folder redirection, for the permission use customize permission and add the group as the service principal
+	3. Create a gpo and configure its settings for folder redirection and offline files
+	4. Test folder redirection
+ We have both basics and advance folder redirection
+
+Basic configuration
+
+We have need to create SG and add user on the group where the OU is created
+We need to create GPO and link it to the OU that those users and group belong to, You can name the GPO as folder redirection.
+Edit the GPO go to the user configuration and click window settings under it folder redirection, then choose where you want to create the fold e.g maybe desktop or documents
+
+Right click the desktop then click on property, there you can choose basic or advance
+
+
+For the advance is almost the same with the basic, the only different is that you can add the group to it
+
+How do you know folder redirection works:
+When the user get to login, it will redirect the folder as mentioned to the shared location, or the folder we have a sync icon, or we can see it on the registry.
+
+
+Login the user and see if the policy is applied:
+Once you click on the file explorer you should see the symbol on the quick access showing sync(green)
+
+This is different from the roaming profile, in this folder redirection whatever the doc you created you directly get the file immediately 
+
+This is the PW to collect logs, use Admin:
+.\TSS.ps1 -Start -Scenario ADS_Profile -ADS_Profile -procMon (you have to download the file)
+
