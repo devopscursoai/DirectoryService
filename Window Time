@@ -1,0 +1,112 @@
+configure time source in your AD domain
+
+Requires udp port 123 open in firewall
+configuration through windows registry or gpo
+two gpos needed
+   GPO 1 for PDCE role domain controller: linked to domain controllers ou (  NTP for only the DC's
+    Gpo 2. for all other network computers, linked to AD domain or specific ou's (configure NT5DS for server and client, this is for the domain machine to get the correct time from the DC which is the PDC to avoid the client checking time from the internet 
+
+identify PDC domain controller with netdom query fsmo
+
+first set time for your main dc which is pdc
+
+
+command for time 
+net stop w32time
+net start w32time
+ws32tm /query /status(((to check your last time sync
+To take effect immediately run w32tim /resync
+If you Wana know the time you are using, then you need to run this
+W32tm /query /source ((the source your client getting the time from will be showed 
+
+W32tm /stripchart /computer:DC1.contoso.com( how the time is different from your PDC domain controller, when you have some seconds which is normal( if there is big time different then you need to check your local pdc time.
+
+
+If you wanna check the event logs, you can check on the system logs look for 
+129 time provider errors.
+131 NTP server not reachable
+134 time service sync failure
+138 time provider failed to acquire a sample
+144: time service successfully synchronized
+50 time adjustment errors
+
+
+
+
+-- NTP ====
+1. check the satus
+ 
+w32tm /query /status
+ 
+2. check the time difference   
+target : (PDC/client) 
+w32tm /stripchart /computer:SRV-DC-4 /dataonly  -check the time difference 
+W32tm /stripchart /computer:SRV-DC-4            -check the time difference
+ 
+sample output 
+C:\Windows\system32>w32tm /stripchart /computer:SRV-DC-4 /dataonly
+Tracking SRV-DC-4 [[::1]:123].
+The current time is 1/12/2026 1:48:13 PM.
+13:48:13, +(MIN).seconds  
+ 
+13:48:13, +00.0001220s
+ 
+ 
+3. check he source  
+target : (PDC/client) 
+w32tm /query /source
+ 
+4.  sample network issues 
+w32tm /stripchart /computer:DC1.contoso.com /samples:5              
+timeouts or error 0x800705B4 ? packet dropped (firewall / routing issue)
+
+5. Event viewer logs 
+target : (PDC/client)
+ 
+filter - critical and error 
+129,131,134,138,144,50
+ 
+ 
+If you wanna check the event logs, you can check on the system logs look for
+129 time provider errors.
+131 NTP server not reachable
+134 time service sync failure
+138 time provider failed to acquire a sample
+144: time service successfully synchronized
+50 time adjustment errors
+ 
+6. resgitry location
+ 
+Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+ 
+HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\W32Time
+
+\W32Time\Config \W32Time\TimeProviders \W32Time\Parameters
+ 
+7.  others 
+w32tm /query /configuration
+w32tm /query /peers
+Test-NetConnection -ComputerName 172.16.4.40 -Port 123 (not working because of UDP)
+
+
+
+1. Collect Event Viewer logs
+Please export the relevant Windows Time Event Viewer logs from both the source and destination.
+
+
+2. Run the following commands
+
+Execute each command on both the source and destination servers and share the outputs:
+w32tm /query /configuration   (both source/destination)
+w32tm /query /status  (both source/destination)
+w32tm /query /source  (both source/destination)
+w32tm /query /peers   (both source/destination)
+w32tm /stripchart /computer:DC2 /dataonly  -check the time difference (both source/destination)
+w32tm /stripchart /computer:DC1 /samples:5  --this will check network if there is timeout or error like 0x800705B4 (run this from the destination)
+
+
+3. GPO Information
+If Windows Time is configured through Group Policy, please provide:
+
+A screenshot of the GPO settings from the source.
+The GPResult output from the destination server.
