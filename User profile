@@ -30,3 +30,67 @@ Then you will still have to again login with the admin account and copy over the
 Go to the old profile, click on it and then copy it accordingly to the new profile. 
 
 After that login with the J.thompson account
+
+
+Basic scoping of user profile
+	1. List the symptom of the issue
+	2. What of user profile, local, roaming, RDS or mandatory
+	3. Is it a new profile or an existing profile (content/availability/permission of NTUSER.DAT
+	4. Is the issue with default profile( permission of the file)
+	5. Do you observe any event in the application event logs
+
+Error message
+Error Could be the system could not find the path specified
+Solution: you have to check if the path was changed and replace with with another path
+Error The process cannot access the file because it is been used by another process
+
+Access deny
+In this aspect when there is duplicate folder you might have acess deny
+
+The user profile service failed the sign-in( user profile cannot be load)
+This could that the default profile is deleted( missing) any new user who logon cannot copy the default profile.
+It could missing the NTUSER.DAT FILE, OR you do not have permission
+
+Always check the event application logs
+
+Temporary profile
+
+This is when you have a profile but you are not able to load it
+
+
+First the path is missing and second you got the folder but the ntuser.dat file is missing
+
+TROUBLESHOOTING:
+	1. A local profile 
+	A local user profile is created the first time that a user logs on to a computer. The profile is stored on the computer's local hard disk.
+	2. . It is stored on that specific device under, It includes the NTUSER.DAT file, which contains user-specific registry settings.
+A roam profile stored on a central server this allow user to have access to any personalized settings and file from any computer within the network environment 
+A roaming user profile is a copy of the local profile that is copied to, and stored on, a server share. This profile is downloaded to any computer that a user logs onto on a network
+
+A mandatory user profile is a type of profile that administrators can use to specify settings for users. Only system administrators can make changes to mandatory user profiles.
+
+A temporary profile is issued each time that an error condition prevents the user's profile from loading. Temporary profiles are deleted at the end of each session
+
+
+	1. Is it a local profile or a roaming profile
+	2. If it is a roaming profile do you mean that you have the profile on the network  or you are trying to create new profile.
+Does it happen to all user or some user
+	1. Verify if the roaming/RDS/mandatory profile is reachable over the network
+	2. Check if user profile already exists (as first logon profile does not exist)
+	3. Registry:(create a reg key with users sid under below reg key)
+Hkey_local_machine\software\microsoft\windows NT\currentVersion\profilelist
+
+FILE SYSTEM: (create a folder under c:\user folder and then copy the default profile)
+Source location of all profile:c:user\default
+Location of all profiles: c:\users\<username>
+
+Load the Ntuser.dat from
+
+Check if the user profile already exists. Check if Ntuser.dat exist
+Registry: create a reg key with users sid under the below reg key if not preset 
+
+Profile deletion:
+Unsupported method
+Manually cleaning up or deleting the user profile data in c:\user\username
+Manually cleaning up the users SID in the profile list key
+Using script or PowerShell to detect the logic of the stale profile and manually cleaning up the profile
