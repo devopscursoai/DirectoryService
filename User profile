@@ -1,0 +1,32 @@
+Steps on how you can recreate corrupt profile
+
+
+If you have user profile issue, this might probably due to the fact that another side has been created that is overide the default side in the registry.
+
+You maybe edit the registry key if you know how to follow the steps.
+The default sid will always end with 1000 but if you have something like this as the second sid 10001.bak it means there is duplicated
+You have to renew the default one and add 1000.bak 
+
+The duplicated one the state should be zero. 
+
+Steps on how you can recreate corrupt profile
+
+Second option. You can logon the machine that has the profile corrupted using the domain admin and go to the user profile and rename the user profile. 
+
+Example if the user profile is j.thomson before you could rename it as j.thomsa.old, but still yet the user will not still be able to load,  but you can decided to copy the information needed on the profile 
+
+The next step is to go the registry
+Open run and type regedit>>>Local machine>>.software>>>microsoft>>>window NT>>currentversion>>>profilelist then explain it.
+
+There you will be able to see the sid click on the sid you will able to see the profileimagepath with the name of the user
+If Thompson was renamed the only thing you will do is to export the key to the desktop before deleting the key if case something went wrong you have to restored the key but be careful and make sure you are deleting the right key. 
+
+After deleting the key, the only thing you have to do is to restart the computer and then try to login with the j.Thompson account
+
+Then login with j.thompson account and if doesn't find the old profile it will try to create new profile account.
+
+Then you will still have to again login with the admin account and copy over the information of j.thompson old profile to the new account. 
+
+Go to the old profile, click on it and then copy it accordingly to the new profile. 
+
+After that login with the J.thompson account
