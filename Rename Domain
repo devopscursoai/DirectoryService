@@ -1,0 +1,101 @@
+	Domain Rename Support Guidelines:
+	 
+	Do we support Rendom break fixes :      Yes
+	Do we support Rendom walkthrough:   No, Cx needs Advisory Support. He should have a Premier Support ID to be able to create a Premier Ticket
+	 
+	How should we handle a Rendom case:
+	 
+	• Ask the customer on which step is he stuck? Or Which component is broken?
+	• If he has already initiated Rendom and specified the issue, scope on that particular issue/ breakfix and work accordingly
+	• If any other specialty component is broken that team needs to take care
+	• If customer has not initiated random suggest him migration. 
+	• We can help on any one of the steps of Rendom as best effort
+		 
+	 
+	 
+	Rendom TS Ref: http://technet.microsoft.com/en-us/library/cc816805(v=WS.10).aspx 
+	 
+	http://download.microsoft.com/download/c/f/c/cfcbff04-97ca-4fca-9e8c-3a9c90a2a2e2/Domain-Rename-Procedure.doc 
+	 
+	Summary Steps  (Just for refrence, this summarizes the complete procedure)
+	 
+	1: rendom /list
+	2: edit DomainList.xml to reflect changes desired
+	3: rendom /upload
+	4: rendom /prepare
+	5: rendom /execute
+	6: gpfixup /olddns:<old dns name> /newdns:<new dns name>
+	7: gpfixup /oldnb:<old netBIOS name> /newnb:<New netBIOS name>
+	8: rendom /end
+	 
+	 
+	Note: There are several supported supported\ unsupported scenarios w.r.t SQL\ Exchange\Sharepoint hence customer might want to check these roles before attempting Rendom.exe
+	 
+	 
+	 
+	 
+	Hello Team ,
+	 
+	Sharing the Process involved in Domain Rename Step by Step .
+	 
+	Try this in your test environment. I had installed the following virtual machines: Two Domain controllers (DC0 and DC1): One domain controller can do .
+	One member server and/or one member workstation: Actually I created two of each to see the effect on member machines that were powered off during the procedure and member machines that were powered on.
+	All machines I created acted in the same exact way regardless of whether they were on or off while I was renaming the domain .
+	 
+	• Create a new DNS zone with the new domain. As new records will start being created in that zone as soon as we perform the rename.
+		• 
+		• 
+		 
+	• 
+	• 
+	• From the Control Station run the rendom /list command
+		• An xml file will be created that lists the current domain information, namely ForestDNSZones, DomainDNSZones and NetBios name.
+		• 
+		• 
+	 
+	• Edit this file to replace all mention of the old domain with the new domain name. In this case I’ve replaced all occurrences of untitled.local with thinkarabia.net and all occurrences UNTITLED with THINKARABIA.
+		• 
+		• 
+	• You can verify the new configuration using the rendom /showforest command:
+		• 
+		• 
+	• It is time to upload the modified xml to our domain controllers using the command rendom /upload.
+		• 
+		• 
+	• Verify the radiance of the domain controllers using Run rendom /prepare.
+		• Here is where I 1st faced an unexpected issue. In my first attempt, both of my test domain controllers were not prepared, but worked fine after turning off the Windows firewall. When I repeated the procedure, only one of the domain controllers gave an error while the other did not have any issues although the firewall was on. When I did it in production I turned the firewall off on all DC just in case, and it went fine on the first attempt.
+	 
+	• 
+	• 
+	 
+	• Transfer rendom /execute.
+		• 
+		• 
+	• All your domain controllers will start to reboot at the same time!!!
+	 
+	• In order to continue you need to make your control server aware of the domain name change. For that you will need to reboot it twice. Otherwise it will continue to use credentials from the old domain and will no longer be able perform changes on the new domain. By the way, all member servers and workstations will need to be rebooted twice to reflect the change.
+	 
+	• Normally at first, all your machines will suggest logging in using the old domain name. No need for alarm, it is just remembering what user name you’ve used last time you have logged in. You simply need to switch user and login with the new domain name.
+	 
+	• 
+	• 
+	• Reflecting the domain name change on your Group Polices.
+	• Group polices still reference the old domain names, and hence we need to fix it.
+		• 
+		• 
+	• This is easily performed using the following two commands:
+		• gpfixup /olddns: untitled.local /newdns:thinkarabia.ent
+		• gpfixup /oldnb:UNTITLED /newnb:THINKARABIA
+		• 
+		• 
+	• Renaming the domain controllers themselves.
+		• Unfortunately they do not get automatically renamed by rebooting twice; you will need to do it using the following commands:
+			• netdom computername dc0.untitled.local /add:dc0.thinkarabia.net
+			• netdom computername dc0.untitled.local /makeprimary:dc0.thinkarabia.net
+		• 
+		• 
+	• Restart the domain controller, and repeat for the other domain controller.
+	• There is nothing else left to do on the control server except clean up using rendom /clean.
+	• And now you have a new name for your domain controller. But you need to reboot all your member machines twice for the change to take effect on all of them. It is a good idea to schedule the reboot before performing the procedure so that it happens automatically afterwards.
+	• Note that this same procedure can be used to change the hierarchy of your sub domain in the forest. For example the sub domain it.servies.rj.com can be renamed to it.rj.com to reflect an organization restructuring.
+Although this looks like a lot of work, it is nothing to be intimidated by. The procedure flows logically and as long as you understand what you are doing, you will be able to perform it with ease and without any issues.
