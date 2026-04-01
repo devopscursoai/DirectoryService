@@ -1,0 +1,55 @@
+TCP/IP Network Connectivity
+
+For Kerberos authentication to occur, there must be TCP/IP network connectivity between the client and the domain controller(s), and the client and the target server. Issues that can affect network connectivity include:
+
+· Firewalls. If you use a firewall, be sure that the Kerberos ticket-granting service ports (TCP port 88, UDP port 88) are enabled on the network.
+
+TCP and UDP Ports Required for Correct Operation of the Kerberos Protocol
+Port Service Description
+
+53/TCP
+53/UDP   DNS service   The internal DNS server needs to be accessible to all clients for the location of KDC computers. The Active Directory domain controllers need to be able to access external DNS servers for resolving external domain name requests.
+
+
+88/TCP
+88/UDP Kerberos ticket-granting service All clients need to be able to connect to this port on the KDC servers.
+
+123/TCP   Time service All clients need to be able to connect to this port for
+123/UDP   time synchronization, either to an internal time server or to an external time source. The internal time server will need to connect to an external time source to synchronize.
+
+464/TCP Microsoft Windows 2000 Kerberos change password protocol This port is also used by the kpasswd protocol. This port should only be open if clients use the kpasswd protocol.
+
+Check the client machine is SPN is register
+
+The command to check if the SPN is register on the client 
+
+setspn -L DC1
+setspn -L donlyone.us\mat
+
+You can check if SPN is available on the client machine attribute and also you can check on the DC is the spn is register as well. 
+
+Check if the Kerberos authentication is enable for all the services
+
+
+Kerberos common error
+
+KDC_ERR_S_PRINCIPAL_UNKNOWN   if SPN is not register
+KDC_ERR_c_PRINCIPAL_UNKNOWN ---client issue, need to check the user upn
+KRB_AP_ERR_MODIFIED-----this is when the TGS can't be decrypt it, indicate the provided tgs can't be decypt, need to check if the spn is registered
+KDC_ERR_ETYPE_NOSUPP----is about encryption type support by client itself. This could ne btw the client and DC
+Kdc_ERR_BADOPTION-----error send by kdc the option request by the client or app is not proper, you need to check if the delegation is set correctly
+KDC_ERR_policy-----if there is a trust between the forest
+
+The command to check if the webserver SPN is register or not:
+
+Setspn -q http/mywebapp.contoso.com
+
+To register the spn to the account owing that service: (Window Identity)
+Go through the attribute editor and go to the account that own that webAPP the SPN and paste the http/mywebapp.contoso.com
+
+IT MIGHT NOT still be authen, you also need to check the support encrypt type for the account in the attribute editor to set the support encrypt types
+
+If the useAppPoolCredential is set to False the application will not be able to decrypt the key except is set to True
+
+For network Trace:
+(kerberos and tcp.port ==88) or (http and ip.addr ==10.32.73.4)
