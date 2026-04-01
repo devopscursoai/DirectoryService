@@ -1,0 +1,45 @@
+Force synchronization for Distributed File System Replication (DFSR) replicated sysvol replication - Windows Server | Microsoft Learn
+ 
+When running 
+ 
+For /f %i IN ('dsquery server -o rdn') do @echo %i && @wmic /node:"%i" /namespace:\\root\microsoftdfs path dfsrreplicatedfolderinfo WHERE replicatedfoldername='SYSVOL share' get replicationgroupname,replicatedfoldername,state
+
+
+
+
+
+
+
+
+
+
+
+If we are troubleshooting the sysvol replication, in other for us to get the real confirmation where the sysvol is not replicated to, we need to go to both DC netlogon and create a doc text to confirm
+
+So then go to the Master DC and stop the DFS rep
+
+Then go to the ADSIedit and put the msdfsr to false because normally by default should be true
+Also the MSDFSR option should be 0, but you have to turn it to one.
+
+While the other DC that the folder are not replicated to you only have to turn the MSDFSR to false only you don't need to set the MSDFSR option.
+
+Then go to your Powershell
+
+repadmin /syncall DC1 /APed.  then enter
+
+
+Then go to the master DC to start the DFS rep again
+Then go back to the Primary DC ADSIedit down to the sysvol subcription then enable the MSDFSR to true
+For now leave the MSDFSR option the way it is
+Then back to powershell.
+
+Run : Repadmin /syncall "the name of the master DC" /Aped.  then enter to check if there is error
+
+Once it confirm no error all partition.. Then we go to other DC to set the msdfsr to true
+
+We can restart the both DC using command:
+Invoke-command -ComputerName ContosoDC1, ContosoDC2 -ScriptBlock {Stop-service DFSR}
+Invoke-command -ComputerName ContosoDC1, ContosoDC2 -ScriptBlock {Start-service DFSR}
+Enable-PSRemoting -Force
+
+We go back to check the event ID again and check if they are replicated
