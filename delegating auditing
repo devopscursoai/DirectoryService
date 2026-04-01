@@ -1,0 +1,58 @@
+ 
+Step‑by‑step: Build the KCD allow‑list (msDS‑AllowedToDelegateTo)
+ 
+1) Identify the delegating (front‑end) identity
+This is the account you will configure on the Delegation tab.
+	• If the front‑end service runs as Local System / Network Service, the effective identity is the computer account (e.g., SERVER$).
+	• If it runs under a domain user/service account (including gMSA), the delegating identity is that user/gMSA.
+	 
+2) Enable auditing on Domain Controllers to generate Event 4769
+Configure the Domain Controllers to log Kerberos service ticket requests:
+	• In the Domain Controllers OU policy, enable:
+		○ Audit Kerberos Service Ticket Operations = Success and Failure
+This produces Security Event ID 4769 on DCs.
+		 
+3) Collect events during representative “normal operation”
+Have the application run through normal usage (including any batch/background workloads), then collect 4769 events over a representative window
+ 
+4) Filter the DC Security log to the delegating identity and to successful tickets
+This is the key step that produces the candidate allow‑list:
+	• Filter Event ID 4769
+	• Filter TargetUserName = your delegating identity
+	• Filter Status = 0x0 (success)
+Use Event Viewer:
+	• Open Security log on a DC → Filter Current Log… → XML tab → Edit query manually
+	 
+5) XML query (paste as-is, then change the account value)
+Replace xxx@xxx.xxx.xxx with your delegating account (user/gMSA or SERVER$ as applicable).
+ 
+<QueryList>
+ <Query Id="0" Path="Security">
+   <Select Path="Security">
+     *[System[(EventID=4769)]]
+     and
+     *[EventData[Data[@Name='TargetUserName']='xxx@xxx.xxx.xxx']]
+     and
+     *[EventData[Data[@Name='Status']='0x0']]
+   </Select>
+ </Query>
+</QueryList>
+ 
+Notes:
+	• In Event 4769, the “Account Name” from the friendly view is stored as TargetUserName, and Status=0x0 indicates success.
+	 
+6) Extract and deduplicate the Service Name values
+From the filtered successful 4769 results:
+	• The Service Name field is the target SPN that was requested (your back‑end target).
+	• Collect the distinct Service Name values (deduplicate them).
+This set becomes your candidate allow‑list for KCD (msDS‑AllowedToDelegateTo).
+	 
+7) Treat failures separately (do not build the allow‑list from failures)
+If you see failures (Status/Failure Code ≠ 0x0), use them for troubleshooting only:
+	• Successful 4769 events (0x0) = definitive “what works” list for allow‑listing.
+	• Failed 4769 events = “what is attempted but not issuing a ticket,” which usually requires fixing (for example, missing/incorrect SPN format or other blocking conditions).
+8) Configure KCD using the candidate allow‑list
+Once you have the deduplicated Service Name list from successful 4769 events:
+	• Configure constrained delegation on the delegating (front‑end) identity.
+	• Add only the required back‑end SPNs (the deduplicated Service Name values) to the allow‑list and then pilot the change.
+After pilot testing, re-run the same 4769 success filter; any newly observed successful Service Name values represent additional SPNs that may need to be ad
