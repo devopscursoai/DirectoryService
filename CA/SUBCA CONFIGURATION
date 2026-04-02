@@ -1,0 +1,81 @@
+ROOTCA:
+notepad C:\windows\CAPolicy.inf
+[version]
+Signature="$Windows NT$"
+[PolicyStatementExtension]
+Policies=IinternalPolicy
+[InternalPolicy]
+OID= 1.2.3.4.1455.67.89.5
+[Certsrv_Server]
+RenewalKeyLength=4096
+RenewalValidityPeriod=Years
+RenewalValidityPeriodUnits=20
+CRLPeriod=Years
+CRLPeriodUnits=20
+CRLDeltaPeriod=Days
+CRLDeltaPeriodUnits=0
+LoadDefaultTemplates=0
+
+
+
+certutil -setreg CA\\DSconfigDN "CN=configuration,DC=contoso,DC=com"
+certutil -setreg ca\\DSDomain "dc=contoso,dc=com"
+
+
+
+This will set the overlap period between the crl and the delta crl
+certutil.exe -setreg CA\\CRLOverlapPeriodUnits 3
+
+this command will sets the CRL overlap period to weeks.
+certutil.exe -setreg CA\\CRLOverlapPeriod "weeks"
+
+This command will sets the maximum certificate validity period of certificates issued by this CA
+certutil.exe -setreg CA\\ValidityPeriodUnits 10
+
+restart the ADCS service
+
+net stop certsvc
+
+net start certsvc
+
+SUbCA:
+
+Before installing the subca, you need to first of all use the file sharing to copy the rootca certificate to the subca before continue with the configuration step:
+
+Then start with this:
+notepad C:\windows\CAPolicy.inf
+
+[version]
+Signature="$Windows NT$"
+[PolicyStatementExtension]
+Policies=InternalPolicy
+[InternalPolicy]
+OID= 1.2.3.4.1455.67.89.5
+[Certsrv_Server]
+RenewalKeyLength=4096
+RenewalValidityPeriod=Years
+RenewalValidityPeriodUnits=10
+LoadDefaultTemplates=0
+
+This is to publish root CA (AIA) certificate and CRL list in AD
+certutil.exe -dspublish -f C:\ROOTCA_ROOTCA-CA.crt RootCA
+certutil.exe -dspublish -f C:\ROOTCA-CA.crl RootCA
+
+Add root CA (AIA) certificate and CRL list into local certificate store
+certutil.exe -addstore -f root C:\ROOTCA_ROOTCA-CA.crt
+certutil.exe -addstore -f root C:\ROOTCA-CA.crl
+
+After the installation and configuration, you need to copy the subca to rootca in other to submit new request by right click on the rootca all task then submit new request then after a while it will appear on the pending request
+After that you need to right click on the pending request to issue the certificate once that is done you will see the certificate on the issue certificate
+then you need to export it to the subca 
+
+once is export you need to install it on the subca. After you install the certificate you will see that in the certificate template there is nothing there this is because we already specific not to use the default template
+which we mentioned here : LoadDefaultTemplates=0 that is the reason we do not have certificate template
+
+and if you want to create a certificate template then you can manage certificate by right click on the certificate template and click on manage
+
+
+certutil -setreg CA\CRLPublicationURLs `
+"65:C:\Windows\system32\CertSrv\CertEnroll\%3%8%9.crl
+79:ldap:///CN=%7%8,CN=%2,CN=CDP,CN=Public Key Services,CN=Services,%6%10
+71:http://www.contoso.com/CertEnroll/%3%8%9.crl"
