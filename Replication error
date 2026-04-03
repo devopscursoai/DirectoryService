@@ -46,3 +46,14 @@ How to fix
 	
 	
 	Telnet <ip> 636, 135
+
+
+
+
+Script to give temporary access on domain admin group:
+
+$TTL = New-TimeSpan -Hours 5
+$SamID = “_guptaa”
+$GroupName = "Domain Admins"
+Add-ADGroupMember -Identity $GroupName -Members $SamID -MemberTimeToLive $TTL
+Get-ADGroup $GroupName -Property member -ShowMemberTimeToLive
