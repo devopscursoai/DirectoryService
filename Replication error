@@ -59,6 +59,8 @@ Enable-ADOptionalFeature `
   -Scope ForestOrConfigurationSet `
   -Target (Get-ADForest).Name
 
+After enable then run the below command
+
 $TTL = New-TimeSpan -Hours 5
 $SamID = “_guptaa”
 $GroupName = "Domain Admins"
