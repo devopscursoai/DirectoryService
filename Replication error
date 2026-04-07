@@ -52,6 +52,13 @@ How to fix
 
 Script to give temporary access on domain admin group:
 
+You need to enable the PAM feature before running the command:
+
+Enable-ADOptionalFeature `
+  -Identity "Privileged Access Management Feature" `
+  -Scope ForestOrConfigurationSet `
+  -Target (Get-ADForest).Name
+
 $TTL = New-TimeSpan -Hours 5
 $SamID = “_guptaa”
 $GroupName = "Domain Admins"
