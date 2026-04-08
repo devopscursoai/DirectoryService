@@ -1,0 +1,21 @@
+This is troubleshooting is used when the auditing is not enabled on the affected device:
+
+
+Step 1:
+  auditpol /clear (Reset the audit engine back to a clean slate)
+Step2:
+  gpupdate /force
+step3 (optional)
+ secedit /refreshpolicy machine_policy /enforce
+Step 4:
+  Reboot Machine
+Step 5:
+   auditpol /get /category:*
+ 
+     auditpol /get /subcategory:"File Share"
+auditpol /get /subcategory:"Directory Service Access"
+ 
+Manually:
+ 
+auditpol /set /subcategory:"File Share" /success:enable /failure:enable
+ 
