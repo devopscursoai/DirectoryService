@@ -1,0 +1,15 @@
+Decoding the ls -l output
+ls -l <-rw-rw-- i jason>
+to see the hidden files you need to run the command 
+<ls -a or ls -l -a or ls -al> if you run ls -l you will not be able see the hidden files
+
+to listing the files by types 
+use < ls -F >
+
+if you wanna list files by time and in reverse
+ls -t list files by time
+ls -r reverse order
+ls -latr long listing including all files reverse sorted by time
+
+listing file with color
+<ls --color> colorize the output
