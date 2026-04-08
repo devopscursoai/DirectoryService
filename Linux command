@@ -13,3 +13,12 @@ ls -latr long listing including all files reverse sorted by time
 
 listing file with color
 <ls --color> colorize the output
+
+working with spaces in names, just say no to spaces you can use alternative like
+Hyphens (-)
+Underscores(_)
+camelcase
+uses backslash (\)
+use quotes ("my note.txt")
+
+
