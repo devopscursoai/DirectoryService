@@ -1,0 +1,7 @@
+This is to check if a device is using RC4
+
+Get-ADComputer -Filter * -Properties msDS-SupportedEncryptionTypes,OperatingSystem |
+
+Where-Object { $_."msDS-SupportedEncryptionTypes" -band 4 } |
+
+Select Name,msDS-SupportedEncryptionTypes,OperatingSystem
