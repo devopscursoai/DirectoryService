@@ -1,0 +1,17 @@
+to save it use temp: 
+
+Import-Csv C:\Temp\KerberosEncryptionUsage.csv |
+Select Time,
+       Requestor,
+       Source,
+       Target,
+       Type,
+       Ticket,
+       SessionKey,
+       @{N='AccountType';E={
+         if ($_.Requestor -like "*$") { "Computer Account" }
+         else { "User / Service Account" }
+       }} |
+Export-Csv C:\Temp\Kerberos_Analyzed.csv -NoTypeInformation
+
+then run as .\Get-KerbEncryptionUsage.ps1
