@@ -21,4 +21,24 @@ camelcase
 uses backslash (\)
 use quotes ("my note.txt")
 
+PERMISSION       file                                Directory
+r    read>>> allows file to be read               allows file names in the directory to be read
+w    write    allows a file to modified            allows entries to be modified within the directory
+x    execute.  allows the execution of a file      allows access to contents and metadata for entries
 
+This persmission can be apply to all the user, group, other and all.
+
+Changing permissions
+Item                                Meaning
+chmod                               change mode command 
+ugoa                                user catergory userr. group, other and all
++-=                                 Add, subtract, or set permission
+rwx                                 read, write,e\ execute
+Add write permission<<chmod g+w (example of the user or group) 
+
+FIND OPTIONS
+mtime days    finds files that are days old.
+size mum      finds file that are of size num
+newer file    finds files that are newer than file
+
+-exec command 
